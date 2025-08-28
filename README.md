@@ -1,25 +1,309 @@
-ProjectMean 🚀
-MEAN Stack Deployment to Ubuntu in AWS.
-Overview
-In this project, we implement a web solution based on the MEAN stack deployed to an Ubuntu server hosted on AWS cloud infrastructure.
+# ProjectMean 🚀
 
-The MEAN stack consists of the following technologies:
+## MEAN Stack Deployment to Ubuntu in AWS
 
-MongoDB: A document-based, No-SQL database used to store application data as JSON-like documents.
+### Overview
 
-Express.js: A server-side web application framework used to build the backend RESTful API.
+This project implements a web solution based on the **MEAN stack** deployed on an Ubuntu server hosted on AWS.
 
-AngularJS: A front-end framework to handle client-side requests and dynamic UI rendering.
+The MEAN stack components are:
 
-Node.js: A JavaScript runtime environment to build scalable server applications serving requests and responses.
+- **MongoDB**: Document-based NoSQL database storing application data as JSON-like documents.
+- **Express.js**: Web application framework for backend API development.
+- **AngularJS**: Frontend framework handling client-side logic and requests.
+- **Node.js**: JavaScript runtime environment powering the server.
 
-The application developed is a simple Book Register web form that allows users to Create, Read, and Delete book records stored in MongoDB.
+The app developed is a **Book Register web form** enabling CRUD operations for book records.
 
-Prerequisites
-Before starting, make sure you have:
+---
 
-An AWS account with an EC2 virtual server running Ubuntu (preferably a t2.micro instance).
+### Prerequisites
 
-Git Bash installed on your local machine.
+Before starting, ensure you have:
 
-An SSH key pair to access your EC2 instance via Git Bash terminal.
+- AWS account with an Ubuntu EC2 virtual server (t2.micro recommended).
+- Git Bash installed.
+- SSH key pair for connecting to your EC2 instance via Git Bash.
+
+---
+
+### Step 1 — Launch your AWS EC2 instance
+
+1. Log into your AWS console.
+2. Select a region close to you.
+3. Launch a new **t2.micro** Ubuntu server instance.
+4. Create and securely store a new `.pem` private key.
+5. Configure your security groups to allow:
+   - SSH (port 22)
+   - HTTP (port 80)
+   - HTTPS (port 443) *(optional)*
+
+---
+
+### Step 2 — Connect via SSH
+
+cd downloads
+ssh -i your-key.pem ubuntu@your-ec2-public-ip
+
+text
+
+---
+
+### Step 3 — Install Node.js
+
+sudo apt update
+sudo apt upgrade
+sudo apt -y install curl dirmngr apt-transport-https lsb-release ca-certificates
+curl -sL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt install -y nodejs
+
+text
+
+---
+
+### Step 4 — Install MongoDB
+
+sudo apt-get install -y gnupg curl
+curl -fsSL https://www.mongodb.org/static/pgp/server-7.0.asc | sudo gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg --dearmor
+echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
+sudo apt-get update
+sudo apt-get install -y mongodb-org
+sudo systemctl start mongod
+sudo systemctl status mongod
+
+text
+
+---
+
+### Step 5 — Setup npm and initialize project
+
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
+source ~/.bashrc
+nvm install --lts
+node -v
+npm -v
+sudo npm install body-parser
+mkdir Books && cd Books
+npm init -y
+
+text
+
+---
+
+### Step 6 — Create server.js
+
+Create a `server.js` file with:
+
+const express = require('express');
+const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
+const path = require('path');
+const app = express();
+const PORT = process.env.PORT || 3300;
+
+mongoose.connect('mongodb://localhost:27017/test', {
+useNewUrlParser: true,
+useUnifiedTopology: true,
+})
+.then(() => console.log('MongoDB connected'))
+.catch(err => console.error('MongoDB connection error:', err));
+
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(bodyParser.json());
+
+require('./apps/routes')(app);
+
+app.listen(PORT, () => {
+console.log(Server up: http://localhost:${PORT});
+});
+
+text
+
+---
+
+### Step 7 — Install Express and set up routes
+
+sudo npm install express mongoose
+mkdir -p apps models
+
+text
+
+Create `apps/routes.js`:
+
+const Book = require('../models/book');
+const path = require('path');
+
+module.exports = function(app) {
+app.get('/book', async (req, res) => {
+try {
+const books = await Book.find();
+res.json(books);
+} catch (err) {
+res.status(500).json({ message: 'Error fetching books', error: err.message });
+}
+});
+
+text
+app.post('/book', async (req, res) => {
+    try {
+        const book = new Book(req.body);
+        const savedBook = await book.save();
+        res.status(201).json({ message: 'Successfully added book', book: savedBook });
+    } catch (err) {
+        res.status(400).json({ message: 'Error adding book', error: err.message });
+    }
+});
+
+app.delete('/book/:isbn', async (req, res) => {
+    try {
+        const result = await Book.findOneAndDelete({ isbn: req.params.isbn });
+        if (!result) {
+            return res.status(404).json({ message: 'Book not found' });
+        }
+        res.json({ message: 'Successfully deleted the book', book: result });
+    } catch (err) {
+        res.status(500).json({ message: 'Error deleting book', error: err.message });
+    }
+});
+
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public', 'index.html'));
+});
+};
+
+text
+
+Create `models/book.js`:
+
+const mongoose = require('mongoose');
+
+const bookSchema = new mongoose.Schema({
+name: { type: String, required: true },
+isbn: { type: String, required: true, unique: true, index: true },
+author: { type: String, required: true },
+pages: { type: Number, required: true, min: 1 }
+}, {
+timestamps: true
+});
+
+module.exports = mongoose.model('Book', bookSchema);
+
+text
+
+---
+
+### Step 8 — Setup AngularJS front-end
+
+cd ../..
+mkdir public && cd public
+
+text
+
+Create `scripts.js`:
+
+angular.module('myApp', [])
+.controller('myCtrl', function($scope, $http) {
+function fetchBooks() {
+$http.get('/book')
+.then(response => {
+$scope.books = response.data;
+})
+.catch(error => {
+console.error('Error fetching books:', error);
+});
+}
+
+text
+fetchBooks();
+
+$scope.del_book = function(book) {
+    $http.delete(`/book/${book.isbn}`)
+    .then(() => fetchBooks())
+    .catch(console.error);
+};
+
+$scope.add_book = function() {
+    const newBook = {
+        name: $scope.Name,
+        isbn: $scope.Isbn,
+        author: $scope.Author,
+        pages: $scope.Pages
+    };
+
+    $http.post('/book', newBook)
+    .then(() => {
+        fetchBooks();
+        $scope.Name = $scope.Isbn = $scope.Author = $scope.Pages = '';
+    })
+    .catch(console.error);
+};
+});
+
+text
+
+Create `index.html`:
+
+<!DOCTYPE html> <html ng-app="myApp" ng-controller="myCtrl"> <head> <meta charset="UTF-8" /> <meta name="viewport" content="width=device-width, initial-scale=1" /> <title>Book Management</title> <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script> <script src="scripts.js"></script> <style> body { font-family: Arial, sans-serif; margin: 20px; } table { border-collapse: collapse; width: 100%; } th, td { border: 1px solid #ddd; padding: 8px; text-align: left; } th { background-color: #f2f2f2; } input[type="text"], input[type="number"] { width: 100%; padding: 5px; } button { margin-top: 10px; padding: 5px 10px; } </style> </head> <body> <h1>Book Management Application</h1>
+text
+<form ng-submit="add_book()">
+    <label>Name:</label>
+    <input type="text" ng-model="Name" required />
+
+    <label>ISBN:</label>
+    <input type="text" ng-model="Isbn" required />
+
+    <label>Author:</label>
+    <input type="text" ng-model="Author" required />
+
+    <label>Pages:</label>
+    <input type="number" ng-model="Pages" required />
+
+    <button type="submit">Add Book</button>
+</form>
+
+<h2>Books</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>ISBN</th>
+            <th>Author</th>
+            <th>Pages</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr ng-repeat="book in books">
+            <td>{{ book.name }}</td>
+            <td>{{ book.isbn }}</td>
+            <td>{{ book.author }}</td>
+            <td>{{ book.pages }}</td>
+            <td><button ng-click="del_book(book)">Delete</button></td>
+        </tr>
+    </tbody>
+</table>
+</body> </html> ```
+Step 9 — Run the Application
+text
+cd ..
+node server.js
+To enable external access, open TCP port 3300 in your AWS security group.
+
+Access the app in your browser at:
+
+text
+http://your_server_public_ip:3300
+Troubleshooting
+If sudo service mongodb start fails, use:
+
+text
+sudo systemctl start mongod
+If sudo apt install npm throws errors, install npm via nvm:
+
+text
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
+source ~/.bashrc
+nvm install --lts
+Congratulations!
+You have successfully deployed and run a full MEAN stack application handling book records on AWS Ubuntu.
