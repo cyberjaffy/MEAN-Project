@@ -46,7 +46,8 @@ Before starting, ensure you have:
 cd downloads
 ssh -i your-key.pem ubuntu@your-ec2-public-ip
 
-text
+<img width="829" height="219" alt="image" src="https://github.com/user-attachments/assets/991adae4-7da0-4025-a48a-c33a3c625ef2" />
+
 
 ---
 
@@ -58,7 +59,8 @@ sudo apt -y install curl dirmngr apt-transport-https lsb-release ca-certificates
 curl -sL https://deb.nodesource.com/setup_18.x | sudo -E bash -
 sudo apt install -y nodejs
 
-text
+<img width="1208" height="835" alt="image" src="https://github.com/user-attachments/assets/e7125f1d-1f2c-4672-9951-8e68a073b751" />
+
 
 ---
 
@@ -72,7 +74,7 @@ sudo apt-get install -y mongodb-org
 sudo systemctl start mongod
 sudo systemctl status mongod
 
-text
+<img width="1288" height="447" alt="image" src="https://github.com/user-attachments/assets/55d405ba-d1c3-4609-84cf-56b9e6bdab6c" />
 
 ---
 
@@ -87,7 +89,8 @@ sudo npm install body-parser
 mkdir Books && cd Books
 npm init -y
 
-text
+<img width="1191" height="871" alt="image" src="https://github.com/user-attachments/assets/34e3f2ed-fe0e-4580-ae96-d8af88f8fd33" />
+
 
 ---
 
@@ -118,7 +121,8 @@ app.listen(PORT, () => {
 console.log(Server up: http://localhost:${PORT});
 });
 
-text
+<img width="955" height="865" alt="image" src="https://github.com/user-attachments/assets/138d999e-8237-49e1-84ff-dd41b963876e" />
+
 
 ---
 
@@ -172,7 +176,8 @@ app.get('*', (req, res) => {
 });
 };
 
-text
+<img width="1063" height="863" alt="image" src="https://github.com/user-attachments/assets/92d7717f-d3f9-4bd4-a34a-d9e671ebc604" />
+
 
 Create `models/book.js`:
 
@@ -189,7 +194,8 @@ timestamps: true
 
 module.exports = mongoose.model('Book', bookSchema);
 
-text
+<img width="862" height="853" alt="image" src="https://github.com/user-attachments/assets/7c59244b-9c13-4f3b-8f15-2fc97d29c5fd" />
+
 
 ---
 
@@ -198,9 +204,11 @@ text
 cd ../..
 mkdir public && cd public
 
-text
+<img width="784" height="141" alt="image" src="https://github.com/user-attachments/assets/bb63181d-3eff-4b2c-aee3-e49015eb1c68" />
+
 
 Create `scripts.js`:
+vi scripts.js
 
 angular.module('myApp', [])
 .controller('myCtrl', function($scope, $http) {
@@ -214,7 +222,6 @@ console.error('Error fetching books:', error);
 });
 }
 
-text
 fetchBooks();
 
 $scope.del_book = function(book) {
@@ -240,7 +247,8 @@ $scope.add_book = function() {
 };
 });
 
-text
+<img width="1019" height="857" alt="image" src="https://github.com/user-attachments/assets/509f0157-a32b-4de4-8640-0ad70069956f" />
+
 
 Create `index.html`:
 
@@ -285,26 +293,45 @@ text
     </tbody>
 </table>
 </body> </html> ```
+
+<img width="1231" height="872" alt="image" src="https://github.com/user-attachments/assets/2ef6cdb4-f2ab-4e2c-822c-c259e2900817" />
+
+
 Step 9 — Run the Application
 text
 cd ..
 node server.js
+
+<img width="1300" height="230" alt="image" src="https://github.com/user-attachments/assets/9e232b44-9b29-4c17-a2e2-8c45a263c306" />
+
 To enable external access, open TCP port 3300 in your AWS security group.
 
 Access the app in your browser at:
 
-text
 http://your_server_public_ip:3300
-Troubleshooting
-If sudo service mongodb start fails, use:
+<img width="1917" height="646" alt="image" src="https://github.com/user-attachments/assets/1c9c9d8e-0b2e-4d1a-9dde-299fae07167b" />
 
-text
+
+Troubleshooting
+If sudo service mongodbd start fails, use:
+
 sudo systemctl start mongod
+
 If sudo apt install npm throws errors, install npm via nvm:
 
 text
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
 source ~/.bashrc
 nvm install --lts
+
+If compiling and starting your server fails with node server.js and throws this error 
+![WhatsApp Image 2025-08-28 at 12 15 48_dfffe95b](https://github.com/user-attachments/assets/d4fe38b6-53ee-4e56-85d7-54deb82018a8)
+
+Install express version 4 suing the command below.
+
+npm install express@4.21.2
+
+and it will work correctly
+Also remember to always update the server before installing any service.
 Congratulations!
 You have successfully deployed and run a full MEAN stack application handling book records on AWS Ubuntu.
