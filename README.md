@@ -37,6 +37,7 @@ Before starting, ensure you have:
    - SSH (port 22)
    - HTTP (port 80)
    - HTTPS (port 443) *(optional)*
+<img width="1628" height="593" alt="image" src="https://github.com/user-attachments/assets/2f84781a-a86e-4df5-b35e-64b57d8a76e0" />
 
 ---
 
